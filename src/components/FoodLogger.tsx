@@ -77,16 +77,39 @@ const FoodLogger = ({ onLogMeal, onManualGlucose }: { onLogMeal: (carbs: number,
       try {
         const img = new Image();
         img.src = url;
-        // Removed crossOrigin="anonymous" because blob: URLs on mobile Safari fail with strict CORS checks.
         
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
         });
 
-        await tf.ready(); // Explicitly initialize WebGL backend
+        // Downscale image using Canvas to prevent Mobile Safari WebGL Out-Of-Memory crash
+        const canvas = document.createElement('canvas');
+        const maxSize = 400;
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.floor(height * (maxSize / width));
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.floor(width * (maxSize / height));
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        await tf.ready();
         const model = await mobilenet.load();
-        const predictions = await model.classify(img);
+        // Classify the downscaled canvas tensor instead of the 12MP raw image
+        const predictions = await model.classify(canvas);
         
         if (predictions && predictions.length > 0) {
           const bestPred = predictions[0];
@@ -311,7 +334,8 @@ const FoodLogger = ({ onLogMeal, onManualGlucose }: { onLogMeal: (carbs: number,
                   setManualFoodCategory('');
                   alert('식사 기록 완료! ✓');
                 }}
-                style={{ background: 'var(--color-secondary)', color: 'white', padding: 'var(--spacing-2) var(--spacing-4)', borderRadius: 'var(--radius-md)', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                className="btn-primary"
+                style={{ background: 'var(--color-secondary)', color: 'white', padding: 'var(--spacing-2) var(--spacing-4)', borderRadius: 'var(--radius-md)', border: 'none' }}
               >
                 추가
               </button>
