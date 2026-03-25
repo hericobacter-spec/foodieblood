@@ -1,5 +1,5 @@
 import { useState, useRef, type KeyboardEvent } from 'react';
-import { Camera, Mic, CheckCircle2, ScanLine } from 'lucide-react';
+import { Camera, Mic, CheckCircle2, ScanLine, Image as ImageIcon } from 'lucide-react';
 import JITAIWarning from './JITAIWarning';
 import { useI18n } from '../i18n';
 import * as mobilenet from '@tensorflow-models/mobilenet';
@@ -39,11 +39,8 @@ const FoodLogger = ({ onLogMeal, onManualGlucose }: { onLogMeal: (carbs: number,
   const [analysisResult, setAnalysisResult] = useState(mockFoods[0]);
   const [isListening, setIsListening] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleCaptureClick = () => {
-    fileInputRef.current?.click();
-  };
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -204,13 +201,25 @@ const FoodLogger = ({ onLogMeal, onManualGlucose }: { onLogMeal: (carbs: number,
               type="file" 
               accept="image/*" 
               capture="environment" 
-              ref={fileInputRef} 
+              ref={cameraInputRef} 
               style={{ display: 'none' }} 
               onChange={handleFileChange}
             />
-            <button className="btn-primary" onClick={handleCaptureClick} style={{ marginTop: 'var(--spacing-6)' }}>
-              {t('capturePhoto')}
-            </button>
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={galleryInputRef} 
+              style={{ display: 'none' }} 
+              onChange={handleFileChange}
+            />
+            <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-6)' }}>
+              <button className="btn-primary" onClick={() => cameraInputRef.current?.click()} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Camera size={18} /> 촬영
+              </button>
+              <button onClick={() => galleryInputRef.current?.click()} style={{ background: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', padding: 'var(--spacing-2) var(--spacing-4)', borderRadius: 'var(--radius-md)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <ImageIcon size={18} /> 첨부
+              </button>
+            </div>
           </div>
         )}
         

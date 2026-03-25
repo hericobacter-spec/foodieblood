@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Activity, Apple, Trophy, Languages, List } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import FoodLogger from './components/FoodLogger';
@@ -13,7 +13,14 @@ function App() {
   const { toggleLang, t } = useI18n();
 
   // Global mock state starts empty, synced explicitly.
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>(() => {
+    const saved = localStorage.getItem('foodieblood_logs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('foodieblood_logs', JSON.stringify(logs));
+  }, [logs]);
 
   const handleLogMeal = (carbs: number, calories: number, timestamp: number, foodName?: string, category?: string) => {
     setLogs(prev => [{
