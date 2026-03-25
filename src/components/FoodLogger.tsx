@@ -3,7 +3,7 @@ import { Camera, Mic, CheckCircle2, ScanLine, Image as ImageIcon } from 'lucide-
 import JITAIWarning from './JITAIWarning';
 import { useI18n } from '../i18n';
 import * as mobilenet from '@tensorflow-models/mobilenet';
-import '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs';
 
 // Define globals for TS
 declare global {
@@ -77,13 +77,14 @@ const FoodLogger = ({ onLogMeal, onManualGlucose }: { onLogMeal: (carbs: number,
       try {
         const img = new Image();
         img.src = url;
-        img.crossOrigin = "anonymous";
+        // Removed crossOrigin="anonymous" because blob: URLs on mobile Safari fail with strict CORS checks.
         
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
         });
 
+        await tf.ready(); // Explicitly initialize WebGL backend
         const model = await mobilenet.load();
         const predictions = await model.classify(img);
         
